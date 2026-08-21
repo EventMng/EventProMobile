@@ -46,3 +46,73 @@ event-system-mobile/
 │       └── haptics.ts                 # Vibration feedback on scan
 
 ```
+
+## Database Design (Entity Relationship Diagram)
+
+```mermaid
+erDiagram
+    ORGANIZATIONS ||--o{ USERS : "employs / contains"
+    ORGANIZATIONS ||--o{ EVENTS : "hosts"
+    ORGANIZATIONS ||--o{ PARTICIPANTS : "registers"
+
+    USERS ||--o{ EVENTS : "creates (ORGANIZER)"
+    USERS ||--o{ EVENT_FRONTMEN : "assigned to (FRONTMAN)"
+    USERS ||--o{ EVENT_REGISTRATIONS : "scans & marks (FRONTMAN)"
+
+    EVENTS ||--o{ EVENT_FRONTMEN : "assigns"
+    EVENTS ||--o{ EVENT_REGISTRATIONS : "registers for"
+
+    PARTICIPANTS ||--o{ EVENT_REGISTRATIONS : "receives invitation"
+
+    ORGANIZATIONS {
+        uuid id PK
+        string name
+        timestamp created_at
+    }
+
+    USERS {
+        uuid id PK
+        uuid organization_id FK
+        string full_name
+        string email UK
+        string password_hash
+        enum role "SYSTEM_ADMIN, ORG_ADMIN, ORGANIZER, FRONTMAN"
+        boolean is_temporary_password
+        timestamp created_at
+    }
+
+    EVENTS {
+        uuid id PK
+        uuid organization_id FK
+        uuid created_by FK
+        string name
+        string location
+        timestamp event_date
+        timestamp created_at
+    }
+
+    EVENT_FRONTMEN {
+        uuid event_id PK, FK
+        uuid user_id PK, FK
+        timestamp assigned_at
+    }
+
+    PARTICIPANTS {
+        uuid id PK
+        uuid organization_id FK
+        string full_name
+        string email
+        string image_url
+        timestamp created_at
+    }
+
+    EVENT_REGISTRATIONS {
+        uuid id PK
+        uuid event_id FK
+        uuid participant_id FK
+        string qr_token UK
+        timestamp invitation_sent_at
+        boolean attended
+        timestamp attended_at
+        uuid marked_by FK
+    }
