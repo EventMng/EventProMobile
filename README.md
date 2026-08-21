@@ -1,6 +1,24 @@
 # EventProMobile
 Mobile Development
 
+## Role in the system
+Expo/React Native app used by Frontmen at events. Frontmen log in with a temporary password issued by an Org Admin, select an assigned event, and use the live QR scanner to verify participants and mark their attendance in real time by calling `EventProWeb`'s scanner API.
+
+## Tech Stack & Core Technologies
+* **Framework:** React Native with Expo (Expo Router)
+* **Language:** TypeScript
+* **Camera & Scanning:** `expo-camera` (QR Code decoding)
+* **Secure Storage:** `expo-secure-store` (for JWT auth tokens and offline session data)
+* **Feedback:** `expo-haptics` (tactile vibration on successful/failed scans)
+* **Networking:** Axios / Fetch API
+
+### DevOps & Infrastructure
+* **Architecture:** Multi-Repository (Decoupled Web & Mobile clients)
+* **Database Hosting:** Supabase / Neon / AWS RDS (PostgreSQL)
+* **Web Hosting:** Vercel
+* **Mobile Distribution:** Expo Application Services (EAS Build)
+* **Version Control:** Git & GitHub
+
 ## folder arch
 ```text
 event-system-mobile/
