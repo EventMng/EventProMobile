@@ -1,91 +1,88 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { api } from '@/services/api';
-import type { AssignedEvent } from '@/types/participant';
-
-interface EventItem extends AssignedEvent {
-  statusBadge: { text: string; bg: string; color: string };
+interface AssignedEventItem {
+  id: string;
+  name: string;
   subtitle: string;
+  statusPill: string;
+  statusType: 'live' | 'upcoming';
 }
 
-const MOCK_EVENTS: EventItem[] = [
+const EVENTS_DATA: AssignedEventItem[] = [
   {
-    id: 'evt_tech_2026',
+    id: 'sample-event-id',
     name: 'Tech Summit 2026',
-    location: 'Gate 2',
-    eventDate: '2026-09-15',
     subtitle: 'Gate 2 · 1,248 checked in',
-    statusBadge: { text: '● Live now', bg: '#FFEDD5', color: '#EA580C' },
+    statusPill: '● Live now',
+    statusType: 'live',
   },
   {
-    id: 'evt_alumni_2026',
+    id: 'sample-event-id-2',
     name: 'Alumni Meetup',
-    location: 'Main hall',
-    eventDate: '2026-10-01',
     subtitle: 'Main hall',
-    statusBadge: { text: 'Starts 2:00 PM', bg: '#EFF6FF', color: '#2563EB' },
+    statusPill: 'Starts 2:00 PM',
+    statusType: 'upcoming',
   },
 ];
 
 export default function EventsScreen() {
-  const [events, setEvents] = useState<EventItem[]>(MOCK_EVENTS);
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const res = await api.get<AssignedEvent[]>('/api/events/assigned');
-      if (res.data && res.data.length > 0) {
-        const formatted = res.data.map((item, idx) => ({
-          ...item,
-          subtitle: item.location || 'Main hall',
-          statusBadge: idx === 0
-            ? { text: '● Live now', bg: '#FFEDD5', color: '#EA580C' }
-            : { text: 'Starts 2:00 PM', bg: '#EFF6FF', color: '#2563EB' },
-        }));
-        setEvents(formatted);
-      }
-    } catch {
-      // Retain design system spec mock events
-    }
-  };
+  function handleSelectEvent(eventId: string) {
+    router.push({
+      pathname: '/(main)/scanner/[eventId]',
+      params: { eventId },
+    });
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Top Header */}
       <View style={styles.header}>
         <Text style={styles.timeText}>9:41</Text>
-        <Text style={styles.headerTitle}>Your events</Text>
-        <Text style={styles.headerSub}>Assigned to you today</Text>
+        <Text style={styles.title}>Your events</Text>
+        <Text style={styles.subtitle}>Assigned to you today</Text>
       </View>
 
+      {/* Events List */}
       <FlatList
-        data={events}
+        data={EVENTS_DATA}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.7}
-            onPress={() => router.push(`/(main)/scanner/${item.id}`)}
+          <Pressable
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() => handleSelectEvent(item.id)}
           >
-            {/* Top Pill Badge */}
-            <View style={[styles.badge, { backgroundColor: item.statusBadge.bg }]}>
-              <Text style={[styles.badgeText, { color: item.statusBadge.color }]}>
-                {item.statusBadge.text}
-              </Text>
+            {/* Status Pill Badge */}
+            <View style={styles.pillContainer}>
+              <View
+                style={[
+                  styles.pill,
+                  item.statusType === 'live'
+                    ? styles.pillLive
+                    : styles.pillUpcoming,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.pillText,
+                    item.statusType === 'live'
+                      ? styles.pillTextLive
+                      : styles.pillTextUpcoming,
+                  ]}
+                >
+                  {item.statusPill}
+                </Text>
+              </View>
             </View>
 
-            {/* Event Name */}
+            {/* Event Title & Subtitle */}
             <Text style={styles.eventName}>{item.name}</Text>
-
-            {/* Event Subtitle */}
             <Text style={styles.eventSubtitle}>{item.subtitle}</Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
       />
     </View>
@@ -96,58 +93,83 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
     paddingTop: 44,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
+    marginBottom: 28,
   },
   timeText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Urbanist_700Bold',
     color: '#111827',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  headerTitle: {
+  title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: 'Urbanist_800ExtraBold',
     color: '#111827',
+    marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  headerSub: {
+  subtitle: {
     fontSize: 15,
+    fontFamily: 'Urbanist_400Regular',
     color: '#6B7280',
-    marginTop: 4,
   },
   listContainer: {
-    paddingHorizontal: 24,
     gap: 16,
   },
   card: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
     borderColor: '#F3F4F6',
-    alignItems: 'flex-start',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  badge: {
-    paddingVertical: 6,
+  cardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  pillContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  pill: {
+    paddingVertical: 5,
     paddingHorizontal: 12,
-    borderRadius: 16,
-    marginBottom: 14,
+    borderRadius: 14,
   },
-  badgeText: {
+  pillLive: {
+    backgroundColor: '#FFEDD5',
+  },
+  pillUpcoming: {
+    backgroundColor: '#EFF6FF',
+  },
+  pillText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Urbanist_700Bold',
+  },
+  pillTextLive: {
+    color: '#EA580C',
+  },
+  pillTextUpcoming: {
+    color: '#2563EB',
   },
   eventName: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 19,
+    fontFamily: 'Urbanist_800ExtraBold',
     color: '#111827',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   eventSubtitle: {
     fontSize: 14,
+    fontFamily: 'Urbanist_400Regular',
     color: '#6B7280',
   },
 });

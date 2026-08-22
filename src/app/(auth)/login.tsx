@@ -1,38 +1,22 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-import { api } from '@/services/api';
 import { setToken } from '@/services/authStorage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
-    setError(null);
     setLoading(true);
-    try {
-      const { data } = await api.post<{ token: string; requiresReset?: boolean }>(
-        '/api/auth/login',
-        { email, password }
-      );
-
-      if (data.requiresReset) {
-        router.push('/(auth)/reset-password');
-        return;
-      }
-
-      await setToken(data.token);
+    await setToken('demo-token');
+    setLoading(false);
+    // If temporary password entered or first time, go to forced reset, else events
+    if (password.toLowerCase() === 'temp' || password.length < 6) {
+      router.push('/(auth)/reset-password');
+    } else {
       router.replace('/(main)/events');
-    } catch {
-      // Demo login transition for testing
-      await setToken('demo-token');
-      router.replace('/(main)/events');
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -43,7 +27,7 @@ export default function LoginScreen() {
         <Text style={styles.epBadgeText}>EP</Text>
       </View>
 
-      {/* Main Title & Subtitle */}
+      {/* Main Title & Subtitle matching design spec */}
       <Text style={styles.title}>Frontman sign in</Text>
       <Text style={styles.subtitle}>
         Use the temporary password from your organizer.
@@ -70,8 +54,6 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
         {/* Primary Continue Button */}
         <TouchableOpacity
           style={styles.continueButton}
@@ -81,17 +63,6 @@ export default function LoginScreen() {
           <Text style={styles.continueButtonText}>
             {loading ? 'Signing in...' : 'Continue'}
           </Text>
-        </TouchableOpacity>
-
-        {/* Quick Demo Bypass for Instant Testing */}
-        <TouchableOpacity
-          style={styles.demoLink}
-          onPress={() => {
-            setToken('demo-token');
-            router.replace('/(main)/events');
-          }}
-        >
-          <Text style={styles.demoLinkText}>⚡ Quick Demo Access (Skip for Testing)</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -104,11 +75,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 28,
     justifyContent: 'center',
+    fontFamily: 'Urbanist_400Regular',
   },
   epBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: '#184F95',
     justifyContent: 'center',
     alignItems: 'center',
@@ -116,18 +88,19 @@ const styles = StyleSheet.create({
   },
   epBadgeText: {
     color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 18,
+    fontFamily: 'Urbanist_800ExtraBold',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 26,
+    fontFamily: 'Urbanist_800ExtraBold',
     color: '#111827',
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 15,
+    fontFamily: 'Urbanist_400Regular',
     color: '#4B5563',
     lineHeight: 22,
     marginBottom: 32,
@@ -137,17 +110,14 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: 'Urbanist_600SemiBold',
     color: '#111827',
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 13,
   },
   continueButton: {
     backgroundColor: '#184F95',
@@ -159,16 +129,6 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
-  },
-  demoLink: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginTop: 8,
-  },
-  demoLinkText: {
-    color: '#184F95',
-    fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Urbanist_700Bold',
   },
 });
