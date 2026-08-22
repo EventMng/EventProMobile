@@ -134,3 +134,28 @@ erDiagram
         timestamp attended_at
         uuid marked_by FK
     }
+```
+
+## Status
+
+Scaffolded from `create-expo-app` (Expo Router, TypeScript), demo template stripped out and replaced with the real screens: `(auth)/login`, `(main)/events`, `(main)/scanner/[eventId]` (a working `expo-camera` scanner), plus `authStorage`/`api`/`scannerService`, the `useCameraPermission`/`useAttendanceSync` hooks, and `CameraOverlay`/`ParticipantSheet`/`StatusBadge` components. Login currently posts to `/api/auth/login` on `EventProWeb`, which is not yet implemented there.
+
+## Getting Started
+
+1. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_BASE_URL` to your running `EventProWeb` instance.
+2. Install and start:
+   ```bash
+   npm install
+   npm run start
+   ```
+
+## Commands
+
+```bash
+npm run start    # expo start
+npm run android
+npm run ios
+npm run web
+npm run lint
+npm run typecheck
+```
