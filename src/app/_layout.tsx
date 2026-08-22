@@ -1,6 +1,12 @@
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import {
+  useFonts,
+  Urbanist_400Regular,
+  Urbanist_600SemiBold,
+  Urbanist_700Bold,
+  Urbanist_800ExtraBold,
+} from '@expo-google-fonts/urbanist';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
@@ -10,8 +16,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
-    Urbanist: require('../../assets/fonts/Urbanist-Variable.ttf'),
-    'Urbanist-Italic': require('../../assets/fonts/Urbanist-Italic-Variable.ttf'),
+    Urbanist_400Regular,
+    Urbanist_600SemiBold,
+    Urbanist_700Bold,
+    Urbanist_800ExtraBold,
   });
 
   useEffect(() => {

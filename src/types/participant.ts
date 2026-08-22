@@ -10,4 +10,7 @@ export interface AssignedEvent {
   name: string;
   location?: string;
   eventDate: string;
+  status?: 'LIVE' | 'SCHEDULED' | 'COMPLETED' | string;
+  organization?: { name: string };
+  startsAt?: string;
 }

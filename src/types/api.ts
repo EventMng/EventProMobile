@@ -3,6 +3,7 @@ export interface ScannerVerifyResponse {
   participant: { id: string; fullName: string; email: string };
   event: { id: string; name: string };
   attended: boolean;
+  valid?: boolean;
 }
 
 export interface ScannerMarkAttendanceResponse {

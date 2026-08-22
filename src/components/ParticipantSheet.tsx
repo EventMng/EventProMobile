@@ -30,6 +30,11 @@ export function ParticipantSheet({
       {/* Top Handle Line */}
       <View style={styles.handle} />
 
+      {/* Member 2 Scope Identifier Tag */}
+      <View style={styles.memberTag}>
+        <Text style={styles.memberTagText}>MEMBER 2: ATTENDEE TICKET METADATA VIEW</Text>
+      </View>
+
       {/* Header Avatar & Info */}
       <View style={styles.headerRow}>
         <View style={styles.avatar}>
@@ -71,7 +76,7 @@ export function ParticipantSheet({
 
         <View style={styles.metaRow}>
           <Text style={styles.metaLabel}>Registration ID</Text>
-          <Text style={styles.metaValueMono}>{registrationId.substring(0, 12)}...</Text>
+          <Text style={styles.metaValueMono}>{registrationId.substring(0, 16)}...</Text>
         </View>
       </View>
 
@@ -83,7 +88,7 @@ export function ParticipantSheet({
             onPress={onDismiss}
             disabled={loading}
           >
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>Dismiss</Text>
           </TouchableOpacity>
         )}
 
@@ -94,7 +99,7 @@ export function ParticipantSheet({
             disabled={loading}
           >
             <Text style={styles.confirmText}>
-              {loading ? 'Checking in...' : 'Confirm Check-In'}
+              {loading ? 'Verifying...' : 'Verify Ticket'}
             </Text>
           </TouchableOpacity>
         )}
@@ -105,10 +110,6 @@ export function ParticipantSheet({
 
 const styles = StyleSheet.create({
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -125,7 +126,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     borderRadius: 2,
     alignSelf: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  memberTag: {
+    backgroundColor: '#EFF6FF',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 14,
+  },
+  memberTagText: {
+    fontSize: 10,
+    fontFamily: 'Urbanist_700Bold',
+    color: '#184F95',
+    letterSpacing: 0.5,
   },
   headerRow: {
     flexDirection: 'row',
@@ -136,7 +151,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#032042',
+    backgroundColor: '#184F95',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -144,18 +159,19 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'Urbanist_800ExtraBold',
   },
   infoContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontFamily: 'Urbanist_700Bold',
     color: '#111827',
   },
   email: {
     fontSize: 13,
+    fontFamily: 'Urbanist_400Regular',
     color: '#6B7280',
     marginTop: 2,
   },
@@ -166,7 +182,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Urbanist_700Bold',
   },
   divider: {
     height: 1,
@@ -186,16 +202,17 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontSize: 13,
+    fontFamily: 'Urbanist_600SemiBold',
     color: '#6B7280',
   },
   metaValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Urbanist_700Bold',
     color: '#111827',
   },
   metaValueMono: {
     fontSize: 13,
-    fontFamily: 'monospace',
+    fontFamily: 'Urbanist_600SemiBold',
     color: '#4B5563',
   },
   actionsRow: {
@@ -212,7 +229,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: '#374151',
-    fontWeight: '600',
+    fontFamily: 'Urbanist_600SemiBold',
     fontSize: 14,
   },
   confirmButton: {
@@ -224,7 +241,7 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontFamily: 'Urbanist_700Bold',
     fontSize: 14,
   },
 });
