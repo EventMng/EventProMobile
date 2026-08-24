@@ -1,23 +1,20 @@
+import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { setToken } from '@/services/authStorage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleLogin() {
     setLoading(true);
     await setToken('demo-token');
     setLoading(false);
-    // If temporary password entered or first time, go to forced reset, else events
-    if (password.toLowerCase() === 'temp' || password.length < 6) {
-      router.push('/(auth)/reset-password');
-    } else {
-      router.replace('/(main)/events');
-    }
+    router.replace('/(main)/events');
   }
 
   return (
@@ -53,6 +50,12 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
         />
+
+        {errorMessage ? (
+          <Text style={{ color: '#DC2626', fontSize: 13, fontFamily: 'Urbanist_600SemiBold', textAlign: 'center' }}>
+            {errorMessage}
+          </Text>
+        ) : null}
 
         {/* Primary Continue Button */}
         <TouchableOpacity
