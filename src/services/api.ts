@@ -1,8 +1,18 @@
 import { create } from 'axios';
-
+import { Platform } from 'react-native';
 import { getToken } from '@/services/authStorage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://10.252.219.91:3001';
+const getDefaultBaseUrl = () => {
+  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_API_BASE_URL;
+  }
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000';
+  }
+  return 'http://localhost:3000';
+};
+
+const API_BASE_URL = getDefaultBaseUrl();
 
 export const api = create({ baseURL: API_BASE_URL });
 

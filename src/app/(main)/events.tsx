@@ -1,7 +1,8 @@
 import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { getUser, clearToken } from '@/services/authStorage';
 
 interface EventItem {
   id: string;
@@ -15,12 +16,19 @@ interface EventItem {
 
 export default function EventsScreen() {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchEvents();
+    loadUserAndEvents();
   }, []);
+
+  async function loadUserAndEvents() {
+    const u = await getUser();
+    if (u) setUser(u);
+    await fetchEvents();
+  }
 
   async function fetchEvents() {
     setLoading(true);
@@ -30,10 +38,15 @@ export default function EventsScreen() {
       setEvents(res.data || []);
     } catch (err: any) {
       console.error('Failed to load events:', err);
-      setError('Failed to load events from database');
+      setError('Failed to load assigned events from server');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleLogout() {
+    await clearToken();
+    router.replace('/(auth)/login');
   }
 
   function handleSelectEvent(eventId: string) {
@@ -47,26 +60,44 @@ export default function EventsScreen() {
     <View style={styles.container}>
       {/* Top Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Your events</Text>
-        <Text style={styles.subtitle}>Assigned to your organization</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.title}>Assigned Events</Text>
+            <Text style={styles.subtitle}>
+              {user ? `Logged in as ${user.fullName || user.email}` : 'Events assigned to your frontman profile'}
+            </Text>
+          </View>
+
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+            <Text style={styles.logoutBtnText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Events List */}
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={{ marginTop: 12, color: '#6B7280', fontSize: 14 }}>Loading events from DB...</Text>
+          <ActivityIndicator size="large" color="#184F95" />
+          <Text style={{ marginTop: 12, color: '#6B7280', fontSize: 14 }}>Loading assigned events...</Text>
         </View>
       ) : error ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
           <Text style={{ color: '#DC2626', fontSize: 15, fontWeight: '600', textAlign: 'center' }}>{error}</Text>
-          <Pressable onPress={fetchEvents} style={{ marginTop: 16, backgroundColor: '#2563EB', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10 }}>
+          <Pressable onPress={fetchEvents} style={{ marginTop: 16, backgroundColor: '#184F95', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10 }}>
             <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Try Again</Text>
           </Pressable>
         </View>
       ) : events.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#6B7280', fontSize: 15 }}>No events found in database.</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+          <Text style={{ color: '#111827', fontSize: 17, fontWeight: '700', textAlign: 'center', marginBottom: 8 }}>
+            No Events Assigned
+          </Text>
+          <Text style={{ color: '#6B7280', fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
+            An Organization Admin must assign your profile to an event as a Frontman before it will appear here.
+          </Text>
+          <Pressable onPress={fetchEvents} style={{ backgroundColor: '#184F95', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12 }}>
+            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Refresh List</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -114,25 +145,30 @@ const styles = StyleSheet.create({
     paddingTop: 44,
   },
   header: {
-    marginBottom: 28,
-  },
-  timeText: {
-    fontSize: 14,
-    fontFamily: 'Urbanist_700Bold',
-    color: '#111827',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: 'Urbanist_800ExtraBold',
     color: '#111827',
     marginBottom: 4,
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'Urbanist_400Regular',
     color: '#6B7280',
+  },
+  logoutBtn: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  logoutBtnText: {
+    fontSize: 13,
+    fontFamily: 'Urbanist_700Bold',
+    color: '#374151',
   },
   listContainer: {
     gap: 16,

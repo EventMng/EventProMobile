@@ -1,8 +1,8 @@
 import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
-import { setToken } from '@/services/authStorage';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { setToken, setUser } from '@/services/authStorage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -11,10 +11,46 @@ export default function LoginScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleLogin() {
+    if (!email.trim()) {
+      setErrorMessage('Please enter your email address.');
+      return;
+    }
+    if (!password.trim()) {
+      setErrorMessage('Please enter your temporary password.');
+      return;
+    }
+
     setLoading(true);
-    await setToken('demo-token');
-    setLoading(false);
-    router.replace('/(main)/events');
+    setErrorMessage(null);
+
+    try {
+      const res = await api.post('/api/auth/login', {
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+      });
+
+      if (res.data?.token) {
+        await setToken(res.data.token);
+        if (res.data.user) {
+          await setUser(res.data.user);
+        }
+        router.replace('/(main)/events');
+      } else {
+        setErrorMessage('Authentication failed. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      const serverMsg = err.response?.data?.error;
+      if (serverMsg === 'Invalid credentials') {
+        setErrorMessage('Invalid email or temporary password.');
+      } else if (serverMsg) {
+        setErrorMessage(serverMsg);
+      } else {
+        setErrorMessage('Unable to connect to server. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
