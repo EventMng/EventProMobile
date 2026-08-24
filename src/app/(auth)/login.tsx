@@ -1,21 +1,19 @@
+import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { setToken } from '@/services/authStorage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleLogin() {
     setLoading(true);
     await setToken('demo-token');
     setLoading(false);
-    // Frontmen sign in with the temporary password an Org Admin issued them
-    // and keep using it as-is for the assigned event — there's no forced
-    // reset step. The Org Admin revokes/reissues it (e.g. once the event
-    // ends), not the Frontman.
     router.replace('/(main)/events');
   }
 
@@ -52,6 +50,12 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
         />
+
+        {errorMessage ? (
+          <Text style={{ color: '#DC2626', fontSize: 13, fontFamily: 'Urbanist_600SemiBold', textAlign: 'center' }}>
+            {errorMessage}
+          </Text>
+        ) : null}
 
         {/* Primary Continue Button */}
         <TouchableOpacity

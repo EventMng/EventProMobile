@@ -1,31 +1,14 @@
+import { api } from '@/services/api';
 import { CameraView } from 'expo-camera';
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { CameraOverlay } from '@/components/CameraOverlay';
-import { ParticipantSheet } from '@/components/ParticipantSheet';
-import { StatusBadge } from '@/components/StatusBadge';
+import { ScannerFlashOverlay, FlashState } from '@/components/ScannerFlashOverlay';
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { useCameraPermission } from '@/hooks/useCameraPermission';
 import { verifyQRToken } from '@/services/scannerService';
-import type { ScannerVerifyResponse } from '@/types/api';
-
-type Status = 'idle' | 'success' | 'error' | 'already-marked';
-
-const MOCK_PARTICIPANT: ScannerVerifyResponse = {
-  registrationId: 'reg_1234567890abc',
-  participant: {
-    id: 'part_1',
-    fullName: 'Kasun Fernando',
-    email: 'kasun.fernando@example.com',
-  },
-  event: {
-    id: 'evt_1',
-    name: 'Tech Summit 2026',
-  },
-  attended: false,
-};
 
 export default function ScannerScreen() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
@@ -33,9 +16,65 @@ export default function ScannerScreen() {
   const { sync } = useAttendanceSync();
 
   const [isScanningActive, setIsScanningActive] = useState(false);
-  const [status, setStatus] = useState<Status>('idle');
-  const [result, setResult] = useState<ScannerVerifyResponse | null>(null);
+  const [flashState, setFlashState] = useState<FlashState>('idle');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const [scanResultData, setScanResultData] = useState<{
+    fullName?: string;
+    ticketType?: string;
+    timeInfo?: string;
+  }>({});
+
+  const [eventData, setEventData] = useState<{
+    name: string;
+    location: string | null;
+    totalRegistrations: number;
+    checkedInCount: number;
+  } | null>(null);
+
+  const timerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (eventId) fetchEventInfo();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [eventId]);
+
+  async function fetchEventInfo() {
+    try {
+      const res = await api.get('/api/events');
+      const found = res.data?.find((e: any) => e.id === eventId);
+      if (found) {
+        setEventData({
+          name: found.name,
+          location: found.location,
+          totalRegistrations: found.totalRegistrations,
+          checkedInCount: found.checkedInCount,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load event tally:', err);
+    }
+  }
+
+  function triggerFlashState(
+    state: FlashState,
+    data?: { fullName?: string; ticketType?: string; timeInfo?: string }
+  ) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setFlashState(state);
+    if (data) setScanResultData(data);
+
+    if (state !== 'idle') {
+      timerRef.current = setTimeout(() => {
+        setFlashState('idle');
+        setIsProcessing(false);
+      }, 2500);
+    } else {
+      setIsProcessing(false);
+    }
+  }
 
   async function handleScan({ data }: { data: string }) {
     if (isProcessing) return;
@@ -43,20 +82,20 @@ export default function ScannerScreen() {
     try {
       const verified = await verifyQRToken(data, eventId);
       if (verified.attended) {
-        setStatus('already-marked');
-        setResult(verified);
+        triggerFlashState('duplicate', {
+          fullName: verified.participant?.fullName || 'Guest',
+          timeInfo: 'Already checked in',
+        });
         return;
       }
       await sync(verified.registrationId);
-      setStatus('success');
-      setResult(verified);
-    } catch {
-      setStatus('error');
-      setResult(null);
-    } finally {
-      setTimeout(() => {
-        setIsProcessing(false);
-      }, 2000);
+      setEventData((prev) => prev ? { ...prev, checkedInCount: prev.checkedInCount + 1 } : null);
+      triggerFlashState('success', {
+        fullName: verified.participant?.fullName || 'Guest',
+        ticketType: 'General Admission',
+      });
+    } catch (err: any) {
+      triggerFlashState('error');
     }
   }
 
@@ -69,85 +108,124 @@ export default function ScannerScreen() {
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={isProcessing ? undefined : handleScan}
         />
-        <CameraOverlay />
-        <View style={styles.statusRow}>
-          <StatusBadge status={status} />
-        </View>
+        {flashState === 'idle' && <CameraOverlay />}
 
+        {/* Floating Close Button */}
         <TouchableOpacity
           style={styles.closeCameraBtn}
-          onPress={() => setIsScanningActive(false)}
+          onPress={() => {
+            setFlashState('idle');
+            setIsScanningActive(false);
+          }}
         >
-          <Text style={styles.closeCameraText}>Close Camera</Text>
+          <Text style={styles.closeCameraText}>✕ Close</Text>
         </TouchableOpacity>
 
-        {result && (
-          <ParticipantSheet
-            result={result}
-            onConfirmCheckIn={() => {
-              setResult({ ...result, attended: true });
-              setTimeout(() => setResult(null), 1500);
-            }}
-            onDismiss={() => setResult(null)}
-          />
-        )}
+        {/* QR Scanner 4 Result States Overlay */}
+        <ScannerFlashOverlay
+          state={flashState}
+          participantName={scanResultData.fullName}
+          ticketType={scanResultData.ticketType}
+          timeInfo={scanResultData.timeInfo}
+          eventName={eventData?.name}
+          locationName={eventData?.location || 'Gate 1'}
+          checkedInCount={eventData?.checkedInCount ?? 0}
+          onPressToDismiss={() => triggerFlashState('idle')}
+        />
       </View>
     );
   }
 
-  // Live Tally Screen (Design Spec Match)
+  const total = eventData?.totalRegistrations || 0;
+  const checked = eventData?.checkedInCount || 0;
+  const percent = total > 0 ? Math.round((checked / total) * 100) : 0;
+  const remaining = Math.max(0, total - checked);
+
+  // Live Tally Screen with 4 State Preview Triggers
   return (
     <View style={styles.tallyContainer}>
-      <Text style={styles.timeText}>9:41</Text>
+      <Text style={styles.timeText}>{eventData?.name || 'Event Scanner'}</Text>
 
       {/* Live Badge */}
       <View style={styles.liveBadge}>
-        <Text style={styles.liveBadgeText}>● Live · Gate 2</Text>
+        <Text style={styles.liveBadgeText}>● Live · {eventData?.location || 'Gate 1'}</Text>
       </View>
 
       {/* Circular Gauge Tally Widget */}
       <View style={styles.gaugeOuter}>
         <View style={styles.gaugeInner}>
-          <Text style={styles.tallyMainText}>1,034</Text>
-          <Text style={styles.tallySubText}>OF 1,520</Text>
+          <Text style={styles.tallyMainText}>{checked}</Text>
+          <Text style={styles.tallySubText}>OF {total}</Text>
         </View>
       </View>
 
       {/* Percentage Check-in Info */}
-      <Text style={styles.percentText}>68% checked in</Text>
-      <Text style={styles.remainingText}>486 remaining</Text>
+      <Text style={styles.percentText}>{percent}% checked in</Text>
+      <Text style={styles.remainingText}>{remaining} remaining</Text>
 
-      {/* Orange Action Button */}
+      {/* Main Action Button */}
       <TouchableOpacity
         style={styles.orangeButton}
         onPress={() => {
           if (!isGranted) {
             requestPermission();
           }
+          setFlashState('idle');
           setIsScanningActive(true);
         }}
       >
         <Text style={styles.orangeButtonText}>Resume scanning</Text>
       </TouchableOpacity>
 
-      {/* Instant Test Scan Button */}
-      <TouchableOpacity
-        style={styles.testScanBtn}
-        onPress={() => setResult(MOCK_PARTICIPANT)}
-      >
-        <Text style={styles.testScanBtnText}>⚡ Test Scan Ticket Card UI</Text>
-      </TouchableOpacity>
+      {/* Design Spec State Preview Selector */}
+      <View style={styles.previewSection}>
+        <Text style={styles.previewSectionTitle}>TEST 4 SCANNER STATES:</Text>
+        <View style={styles.previewBtnRow}>
+          <TouchableOpacity
+            style={[styles.previewBtn, { backgroundColor: '#111827' }]}
+            onPress={() => {
+              if (!isGranted) requestPermission();
+              setFlashState('idle');
+              setIsScanningActive(true);
+            }}
+          >
+            <Text style={styles.previewBtnText}>Idle</Text>
+          </TouchableOpacity>
 
-      {result && (
-        <ParticipantSheet
-          result={result}
-          onConfirmCheckIn={() => {
-            setResult({ ...result, attended: true });
-            setTimeout(() => setResult(null), 1500);
-          }}
-          onDismiss={() => setResult(null)}
-        />
-      )}
+          <TouchableOpacity
+            style={[styles.previewBtn, { backgroundColor: '#F96C15' }]}
+            onPress={() => {
+              setFlashState('idle');
+              setIsScanningActive(true);
+              triggerFlashState('success', { fullName: 'Nadeesha Perera', ticketType: 'General Admission' });
+            }}
+          >
+            <Text style={styles.previewBtnText}>Success</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.previewBtn, { backgroundColor: '#D92D2D' }]}
+            onPress={() => {
+              setFlashState('idle');
+              setIsScanningActive(true);
+              triggerFlashState('error');
+            }}
+          >
+            <Text style={styles.previewBtnText}>Error</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.previewBtn, { backgroundColor: '#B4890F' }]}
+            onPress={() => {
+              setFlashState('idle');
+              setIsScanningActive(true);
+              triggerFlashState('duplicate', { fullName: 'Kasun Fernando', timeInfo: '9:14 AM at Gate 1' });
+            }}
+          >
+            <Text style={styles.previewBtnText}>Duplicate</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -254,11 +332,37 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    zIndex: 20,
+    zIndex: 60,
   },
   closeCameraText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
+  },
+  previewSection: {
+    marginTop: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  previewSectionTitle: {
+    fontSize: 11,
+    fontFamily: 'Urbanist_700Bold',
+    color: '#9CA3AF',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  previewBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  previewBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  previewBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'Urbanist_700Bold',
   },
 });

@@ -2,7 +2,7 @@ import { create } from 'axios';
 
 import { getToken } from '@/services/authStorage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://10.252.219.91:3001';
 
 export const api = create({ baseURL: API_BASE_URL });
 
