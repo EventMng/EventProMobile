@@ -12,12 +12,11 @@ export default function LoginScreen() {
     setLoading(true);
     await setToken('demo-token');
     setLoading(false);
-    // If temporary password entered or first time, go to forced reset, else events
-    if (password.toLowerCase() === 'temp' || password.length < 6) {
-      router.push('/(auth)/reset-password');
-    } else {
-      router.replace('/(main)/events');
-    }
+    // Frontmen sign in with the temporary password an Org Admin issued them
+    // and keep using it as-is for the assigned event — there's no forced
+    // reset step. The Org Admin revokes/reissues it (e.g. once the event
+    // ends), not the Frontman.
+    router.replace('/(main)/events');
   }
 
   return (

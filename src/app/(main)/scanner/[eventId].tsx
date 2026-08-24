@@ -41,13 +41,13 @@ export default function ScannerScreen() {
     if (isProcessing) return;
     setIsProcessing(true);
     try {
-      const verified = await verifyQRToken(data);
+      const verified = await verifyQRToken(data, eventId);
       if (verified.attended) {
         setStatus('already-marked');
         setResult(verified);
         return;
       }
-      await sync(verified.registrationId, eventId || 'default-event');
+      await sync(verified.registrationId);
       setStatus('success');
       setResult(verified);
     } catch {

@@ -6,10 +6,10 @@ import { errorFeedback, successFeedback } from '@/utils/haptics';
 export function useAttendanceSync() {
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const sync = useCallback(async (registrationId: string, markedBy: string) => {
+  const sync = useCallback(async (registrationId: string) => {
     setIsSyncing(true);
     try {
-      const result = await markAttendance(registrationId, markedBy);
+      const result = await markAttendance(registrationId);
       successFeedback();
       return result;
     } catch (error) {

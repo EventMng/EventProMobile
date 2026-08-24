@@ -30,11 +30,6 @@ export function ParticipantSheet({
       {/* Top Handle Line */}
       <View style={styles.handle} />
 
-      {/* Member 2 Scope Identifier Tag */}
-      <View style={styles.memberTag}>
-        <Text style={styles.memberTagText}>MEMBER 2: ATTENDEE TICKET METADATA VIEW</Text>
-      </View>
-
       {/* Header Avatar & Info */}
       <View style={styles.headerRow}>
         <View style={styles.avatar}>
@@ -127,20 +122,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 12,
-  },
-  memberTag: {
-    backgroundColor: '#EFF6FF',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 14,
-  },
-  memberTagText: {
-    fontSize: 10,
-    fontFamily: 'Urbanist_700Bold',
-    color: '#184F95',
-    letterSpacing: 0.5,
   },
   headerRow: {
     flexDirection: 'row',
