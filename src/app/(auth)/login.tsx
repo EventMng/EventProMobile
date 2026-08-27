@@ -1,3 +1,4 @@
+import AuthLoadingOverlay from '@/components/AuthLoadingOverlay';
 import { api } from '@/services/api';
 import { setToken, setUser } from '@/services/authStorage';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Authenticating...');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
 
@@ -36,6 +38,7 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    setLoadingMessage('Authenticating...');
     setErrorMessage(null);
 
     try {
@@ -49,12 +52,18 @@ export default function LoginScreen() {
         if (res.data.user) {
           await setUser(res.data.user);
         }
-        router.replace('/(main)/events');
+        setLoadingMessage('Login Successful!');
+        setTimeout(() => {
+          setLoading(false);
+          router.replace('/(main)/events');
+        }, 500);
       } else {
+        setLoading(false);
         setErrorMessage('Authentication failed. Please try again.');
       }
     } catch (err: any) {
       console.error('Login error:', err);
+      setLoading(false);
       const serverMsg = err.response?.data?.error;
       if (serverMsg === 'Invalid credentials') {
         setErrorMessage('Invalid email or temporary password.');
@@ -63,8 +72,6 @@ export default function LoginScreen() {
       } else {
         setErrorMessage('Unable to connect to server. Please try again.');
       }
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -204,6 +211,11 @@ export default function LoginScreen() {
             </View>
           </View>
         </ScrollView>
+        <AuthLoadingOverlay
+          visible={loading}
+          message={loadingMessage}
+          subMessage="Verifying staff credentials and securing connection"
+        />
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );

@@ -1,6 +1,7 @@
 import { create } from 'axios';
 import { Platform } from 'react-native';
-import { getToken } from '@/services/authStorage';
+import { getToken, clearToken } from '@/services/authStorage';
+import { router } from 'expo-router';
 
 const getDefaultBaseUrl = () => {
   if (process.env.EXPO_PUBLIC_API_BASE_URL) {
@@ -29,3 +30,14 @@ api.interceptors.request.use(async (config) => {
   config.headers['x-dev-role'] = 'FRONTMAN';
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      await clearToken();
+      router.replace('/(auth)/login');
+    }
+    return Promise.reject(error);
+  }
+);
