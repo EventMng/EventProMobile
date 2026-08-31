@@ -3,10 +3,9 @@ import { api } from '@/services/api';
 import { setToken, setUser } from '@/services/authStorage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import React, { memo, useState } from 'react';
 import {
   ActivityIndicator,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,18 +13,105 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
+// ─── Isolated Email Input ────────────────────────────────────────────────────
+// Manages its own focus state so parent LoginScreen never re-renders on focus.
+const EmailInput = memo(({
+  value,
+  onChangeText,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+}) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={styles.inputLabel}>Email Address</Text>
+      <View style={[styles.inputContainer, focused && styles.inputContainerFocused]}>
+        <Ionicons
+          name="mail-outline"
+          size={20}
+          color={focused ? '#184F95' : '#9CA3AF'}
+          style={styles.inputIcon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="name@eventpro.com"
+          placeholderTextColor="#9CA3AF"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          returnKeyType="next"
+          editable={true}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+      </View>
+    </View>
+  );
+});
+
+// ─── Isolated Password Input ─────────────────────────────────────────────────
+const PasswordInput = memo(({
+  value,
+  onChangeText,
+  onSubmitEditing,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  onSubmitEditing: () => void;
+}) => {
+  const [focused, setFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={styles.inputLabel}>Temporary Password</Text>
+      <View style={[styles.inputContainer, focused && styles.inputContainerFocused]}>
+        <Ionicons
+          name="lock-closed-outline"
+          size={20}
+          color={focused ? '#184F95' : '#9CA3AF'}
+          style={styles.inputIcon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter temporary password"
+          placeholderTextColor="#9CA3AF"
+          secureTextEntry={!showPassword}
+          returnKeyType="done"
+          editable={true}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onSubmitEditing={onSubmitEditing}
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(prev => !prev)}
+          style={styles.eyeIcon}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color="#6B7280"
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+});
+
+// ─── Login Screen ────────────────────────────────────────────────────────────
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Authenticating...');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
 
   async function handleLogin() {
     if (!email.trim()) {
@@ -76,156 +162,92 @@ export default function LoginScreen() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header Badge */}
-          <View style={styles.headerContainer}>
-            <View style={styles.badgeWrapper}>
-              <View style={styles.epBadge}>
-                <Ionicons name="qr-code-sharp" size={26} color="#FFFFFF" />
-              </View>
-              <View style={styles.pillBadge}>
-                <View style={styles.pillDot} />
-                <Text style={styles.pillText}>STAFF SCANNER</Text>
-              </View>
+        {/* Header Badge */}
+        <View style={styles.headerContainer}>
+          <View style={styles.badgeWrapper}>
+            <View style={styles.epBadge}>
+              <Ionicons name="qr-code-sharp" size={26} color="#FFFFFF" />
             </View>
-
-            <Text style={styles.title}>Frontman Sign In</Text>
-            <Text style={styles.subtitle}>
-              Use the temporary password issued by your event organizer.
-            </Text>
-          </View>
-
-          {/* Form Section */}
-          <View style={styles.formGroup}>
-            {/* Email Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  focusedInput === 'email' && styles.inputContainerFocused,
-                ]}
-              >
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={focusedInput === 'email' ? '#184F95' : '#9CA3AF'}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="name@eventpro.com"
-                  placeholderTextColor="#9CA3AF"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                  onFocus={() => setFocusedInput('email')}
-                  onBlur={() => setFocusedInput(null)}
-                />
-              </View>
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Temporary Password</Text>
-              <View
-                style={[
-                  styles.inputContainer,
-                  focusedInput === 'password' && styles.inputContainerFocused,
-                ]}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={focusedInput === 'password' ? '#184F95' : '#9CA3AF'}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter temporary password"
-                  placeholderTextColor="#9CA3AF"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  onFocus={() => setFocusedInput('password')}
-                  onBlur={() => setFocusedInput(null)}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color="#6B7280"
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Error Card */}
-            {errorMessage ? (
-              <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={18} color="#DC2626" />
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </View>
-            ) : null}
-
-            {/* Primary Submit Button */}
-            <TouchableOpacity
-              style={[styles.continueButton, loading && styles.continueButtonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading ? (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                  <Text style={styles.continueButtonText}>Signing in...</Text>
-                </View>
-              ) : (
-                <View style={styles.buttonRow}>
-                  <Text style={styles.continueButtonText}>Continue</Text>
-                  <Ionicons name="arrow-forward-sharp" size={18} color="#FFFFFF" />
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Footer Security Badge */}
-          <View style={styles.footer}>
-            <View style={styles.securityBadge}>
-              <Ionicons name="shield-checkmark-outline" size={15} color="#6B7280" />
-              <Text style={styles.footerText}>Secure Frontman Authentication</Text>
+            <View style={styles.pillBadge}>
+              <View style={styles.pillDot} />
+              <Text style={styles.pillText}>STAFF SCANNER</Text>
             </View>
           </View>
-        </ScrollView>
-        <AuthLoadingOverlay
-          visible={loading}
-          message={loadingMessage}
-          subMessage="Verifying staff credentials and securing connection"
-        />
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+
+          <Text style={styles.title}>Frontman Sign In</Text>
+          <Text style={styles.subtitle}>
+            Use the temporary password issued by your event organizer.
+          </Text>
+        </View>
+
+        {/* Form Section */}
+        <View style={styles.formGroup}>
+          <EmailInput value={email} onChangeText={setEmail} />
+          <PasswordInput
+            value={password}
+            onChangeText={setPassword}
+            onSubmitEditing={handleLogin}
+          />
+
+          {/* Error Card */}
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={18} color="#DC2626" />
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : null}
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[styles.continueButton, loading && styles.continueButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={styles.continueButtonText}>Signing in...</Text>
+              </View>
+            ) : (
+              <View style={styles.buttonRow}>
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward-sharp" size={18} color="#FFFFFF" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.securityBadge}>
+            <Ionicons name="shield-checkmark-outline" size={15} color="#6B7280" />
+            <Text style={styles.footerText}>Secure Frontman Authentication</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      <AuthLoadingOverlay
+        visible={loading}
+        message={loadingMessage}
+        subMessage="Verifying staff credentials and securing connection"
+      />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoid: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -315,11 +337,6 @@ const styles = StyleSheet.create({
   inputContainerFocused: {
     borderColor: '#184F95',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#184F95',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
   },
   inputIcon: {
     marginRight: 10,
@@ -329,7 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Urbanist_600SemiBold',
     color: '#111827',
-    height: '100%',
+    paddingVertical: 0,
   },
   eyeIcon: {
     padding: 6,
