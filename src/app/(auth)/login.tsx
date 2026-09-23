@@ -38,7 +38,7 @@ const EmailInput = memo(({
         />
         <TextInput
           style={styles.input}
-          placeholder="name@eventpro.com"
+          placeholder="Your Email"
           placeholderTextColor="#9CA3AF"
           autoCapitalize="none"
           keyboardType="email-address"
@@ -68,7 +68,7 @@ const PasswordInput = memo(({
   const [showPassword, setShowPassword] = useState(false);
   return (
     <View style={styles.inputWrapper}>
-      <Text style={styles.inputLabel}>Temporary Password</Text>
+      <Text style={styles.inputLabel}>Password</Text>
       <View style={[styles.inputContainer, focused && styles.inputContainerFocused]}>
         <Ionicons
           name="lock-closed-outline"
@@ -78,7 +78,7 @@ const PasswordInput = memo(({
         />
         <TextInput
           style={styles.input}
-          placeholder="Enter temporary password"
+          placeholder="Temporary Password"
           placeholderTextColor="#9CA3AF"
           secureTextEntry={!showPassword}
           returnKeyType="done"
@@ -163,7 +163,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+      style={{ flex: 1, backgroundColor: '#032042' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       enabled={Platform.OS === 'ios'}
     >
@@ -175,19 +175,9 @@ export default function LoginScreen() {
       >
         {/* Header Badge */}
         <View style={styles.headerContainer}>
-          <View style={styles.badgeWrapper}>
-            <View style={styles.epBadge}>
-              <Ionicons name="qr-code-sharp" size={26} color="#FFFFFF" />
-            </View>
-            <View style={styles.pillBadge}>
-              <View style={styles.pillDot} />
-              <Text style={styles.pillText}>STAFF SCANNER</Text>
-            </View>
-          </View>
-
-          <Text style={styles.title}>Frontman Sign In</Text>
+          <Text style={styles.title}>EventPro</Text>
           <Text style={styles.subtitle}>
-            Use the temporary password issued by your event organizer.
+            Scanner App • Event Management
           </Text>
         </View>
 
@@ -222,8 +212,7 @@ export default function LoginScreen() {
               </View>
             ) : (
               <View style={styles.buttonRow}>
-                <Text style={styles.continueButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward-sharp" size={18} color="#FFFFFF" />
+                <Text style={styles.continueButtonText}>Sign In</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -231,10 +220,9 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.securityBadge}>
-            <Ionicons name="shield-checkmark-outline" size={15} color="#6B7280" />
-            <Text style={styles.footerText}>Secure Frontman Authentication</Text>
-          </View>
+          <Text style={styles.footerLink}>Forgot Password?</Text>
+          <Text style={styles.footerLink}>Need dynamic access? Learn More</Text>
+          <Text style={styles.poweredByText}>Powered by EventPro</Text>
         </View>
       </ScrollView>
 
@@ -251,99 +239,59 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: 32,
     paddingVertical: 40,
   },
   headerContainer: {
-    marginBottom: 32,
-  },
-  badgeWrapper: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  epBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#184F95',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#184F95',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  pillBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  pillDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#184F95',
-    marginRight: 6,
-  },
-  pillText: {
-    fontSize: 11,
-    fontFamily: 'Urbanist_800ExtraBold',
-    color: '#184F95',
-    letterSpacing: 0.5,
+    marginBottom: 48,
   },
   title: {
-    fontSize: 28,
+    fontSize: 42,
     fontFamily: 'Urbanist_800ExtraBold',
-    color: '#111827',
+    color: '#FFFFFF',
     marginBottom: 8,
     letterSpacing: -0.4,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Urbanist_400Regular',
-    color: '#4B5563',
-    lineHeight: 22,
+    color: '#E5E7EB',
+    opacity: 0.9,
   },
   formGroup: {
     gap: 20,
+    width: '100%',
   },
   inputWrapper: {
-    gap: 6,
+    gap: 8,
   },
   inputLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'Urbanist_700Bold',
-    color: '#374151',
+    color: '#FFFFFF',
     marginLeft: 2,
+    fontWeight: '500',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: 14,
-    paddingHorizontal: 14,
+    borderColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 16,
     height: 52,
   },
   inputContainerFocused: {
     borderColor: '#184F95',
-    backgroundColor: '#FFFFFF',
   },
   inputIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Urbanist_600SemiBold',
     color: '#111827',
     paddingVertical: 0,
@@ -359,7 +307,7 @@ const styles = StyleSheet.create({
     borderColor: '#F87171',
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: 8,
     gap: 8,
   },
   errorText: {
@@ -369,17 +317,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Urbanist_600SemiBold',
   },
   continueButton: {
-    backgroundColor: '#184F95',
+    backgroundColor: '#005BB5',
     height: 54,
-    borderRadius: 14,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 6,
-    shadowColor: '#184F95',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 8,
   },
   continueButtonDisabled: {
     opacity: 0.7,
@@ -396,21 +339,23 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Urbanist_700Bold',
   },
   footer: {
     marginTop: 36,
     alignItems: 'center',
+    gap: 16,
   },
-  securityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  footerText: {
-    fontSize: 12,
+  footerLink: {
+    fontSize: 14,
+    color: '#E5E7EB',
     fontFamily: 'Urbanist_600SemiBold',
-    color: '#6B7280',
+  },
+  poweredByText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontFamily: 'Urbanist_400Regular',
+    marginTop: 20,
   },
 });
