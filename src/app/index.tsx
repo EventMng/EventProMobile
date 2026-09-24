@@ -15,7 +15,7 @@ export default function Index() {
     try {
       const token = await getToken();
       // Add slight delay for smooth visual transition
-      await new Promise((res) => setTimeout(res, 600));
+      await new Promise((res) => setTimeout(() => res(undefined), 600));
       if (token) {
         router.replace('/(main)/events');
       } else {

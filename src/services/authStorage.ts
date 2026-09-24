@@ -4,9 +4,15 @@ import { Platform } from 'react-native';
 const TOKEN_KEY = 'eventpro_jwt';
 const USER_KEY = 'eventpro_user';
 
-function getWebStorage(): Storage | null {
+interface WebStorageLike {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+function getWebStorage(): WebStorageLike | null {
   if (Platform.OS === 'web' && typeof globalThis !== 'undefined' && 'localStorage' in globalThis) {
-    return (globalThis as any).localStorage as Storage;
+    return (globalThis as any).localStorage as WebStorageLike;
   }
   return null;
 }

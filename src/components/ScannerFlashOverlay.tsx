@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
 
   fullscreenFlash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 50,
     justifyContent: 'center',
     alignItems: 'center',
