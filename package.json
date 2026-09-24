@@ -5,7 +5,6 @@
   "dependencies": {
     "@expo-google-fonts/urbanist": "^0.4.2",
     "@expo/vector-icons": "^15.1.1",
-    "@react-navigation/native": "^7.1.8",
     "axios": "^1.7.9",
     "expo": "^57.0.25",
     "expo-asset": "~57.0.18",
