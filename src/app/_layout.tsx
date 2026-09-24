@@ -32,8 +32,9 @@ export default function RootLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(main)" />
+      <Stack.Screen name="(auth)/login" />
+      <Stack.Screen name="(main)/events" />
+      <Stack.Screen name="(main)/scanner/[eventId]" />
     </Stack>
   );
 }
