@@ -134,15 +134,12 @@ export default function LoginScreen() {
       });
 
       if (res.data?.token) {
-        await setToken(res.data.token);
-        if (res.data.user) {
-          await setUser(res.data.user);
-        }
-        setLoadingMessage('Login Successful!');
-        setTimeout(() => {
-          setLoading(false);
-          router.replace('/(main)/events');
-        }, 500);
+        await Promise.all([
+          setToken(res.data.token),
+          res.data.user ? setUser(res.data.user) : Promise.resolve(),
+        ]);
+        setLoading(false);
+        router.replace('/(main)/events');
       } else {
         setLoading(false);
         setErrorMessage('Authentication failed. Please try again.');

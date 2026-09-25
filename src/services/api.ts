@@ -10,7 +10,7 @@ const getDefaultBaseUrl = () => {
   if (Platform.OS === 'android') {
     // 10.0.2.2 is only for Android Emulator.
     // For a real device on Expo Go, use the machine's LAN IP.
-    return 'http://10.10.15.251:3000';
+    return 'http://10.200.119.91:3000';
   }
   return 'http://localhost:3000';
 };
