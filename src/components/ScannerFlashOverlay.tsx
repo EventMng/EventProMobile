@@ -49,8 +49,8 @@ export function ScannerFlashOverlay({
     error: {
       bgColor: '#D92D2D', // Crimson Red Flash
       icon: '✕',
-      title: 'Not registered',
-      subtitle: "This code isn't on the guest list",
+      title: participantName || 'Not registered',
+      subtitle: timeInfo || "This code isn't on the guest list",
     },
     duplicate: {
       bgColor: '#B4890F', // Gold Warning Flash

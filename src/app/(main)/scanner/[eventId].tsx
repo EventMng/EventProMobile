@@ -43,7 +43,7 @@ export default function ScannerScreen() {
 
   async function fetchEventInfo() {
     try {
-      const res = await api.get('/api/events');
+      const res = await api.get('/api/events?assignedOnly=true');
       const found = res.data?.find((e: any) => e.id === eventId);
       if (found) {
         setEventData({
@@ -95,7 +95,30 @@ export default function ScannerScreen() {
         ticketType: 'General Admission',
       });
     } catch (err: any) {
-      triggerFlashState('error');
+      console.error('[Scanner Error]', err.response?.status, err.response?.data || err.message);
+      const serverErr = err.response?.data?.error;
+      const title =
+        serverErr === 'WRONG_EVENT'
+          ? 'Wrong Event'
+          : serverErr === 'NOT_ASSIGNED'
+            ? 'Not Assigned'
+            : serverErr === 'INVALID_TOKEN'
+              ? 'Invalid QR Code'
+              : 'Not Registered';
+      const ticketEventName = err.response?.data?.ticketEventName;
+      const subtitle =
+        serverErr === 'WRONG_EVENT'
+          ? (ticketEventName ? `Ticket is for: ${ticketEventName}` : 'Ticket belongs to a different event')
+          : serverErr === 'NOT_ASSIGNED'
+            ? 'You are not assigned as Frontman for this event'
+            : serverErr === 'INVALID_TOKEN'
+              ? 'This QR code is invalid or expired'
+              : "This code isn't on the guest list";
+
+      triggerFlashState('error', {
+        fullName: title,
+        timeInfo: subtitle,
+      });
     }
   }
 

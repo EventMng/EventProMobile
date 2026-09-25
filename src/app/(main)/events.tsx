@@ -34,7 +34,7 @@ export default function EventsScreen() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<EventItem[]>('/api/events');
+      const res = await api.get<EventItem[]>('/api/events?assignedOnly=true');
       setEvents(res.data || []);
     } catch (err: any) {
       console.error('Failed to load events:', err);
@@ -104,6 +104,8 @@ export default function EventsScreen() {
           data={events}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          refreshing={loading}
+          onRefresh={fetchEvents}
           renderItem={({ item }) => {
             const isLive = item.status === 'Live';
             return (
@@ -125,6 +127,9 @@ export default function EventsScreen() {
 
                 {/* Event Title & Subtitle */}
                 <Text style={styles.eventName}>{item.name}</Text>
+                <Text style={styles.eventDate}>
+                  📅 {item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBA'}
+                </Text>
                 <Text style={styles.eventSubtitle}>
                   {item.location || 'Main Venue'} · {item.checkedInCount} of {item.totalRegistrations} checked in
                 </Text>
@@ -218,6 +223,12 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontFamily: 'Urbanist_800ExtraBold',
     color: '#111827',
+    marginBottom: 2,
+  },
+  eventDate: {
+    fontSize: 13,
+    fontFamily: 'Urbanist_600SemiBold',
+    color: '#4B5563',
     marginBottom: 4,
   },
   eventSubtitle: {

@@ -1,5 +1,6 @@
 import { create } from 'axios';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { getToken, clearToken } from '@/services/authStorage';
 import { router } from 'expo-router';
 
@@ -7,19 +8,21 @@ const getDefaultBaseUrl = () => {
   if (process.env.EXPO_PUBLIC_API_BASE_URL) {
     return process.env.EXPO_PUBLIC_API_BASE_URL;
   }
-  if (Platform.OS === 'android') {
-    // 10.0.2.2 is only for Android Emulator.
-    // For a real device on Expo Go, use the machine's LAN IP.
+
+  // Current active computer Wi-Fi IP
+  if (Platform.OS === 'android' || Platform.OS === 'ios') {
     return 'http://10.200.119.91:3000';
   }
+
   return 'http://localhost:3000';
 };
 
 const API_BASE_URL = getDefaultBaseUrl();
 
-export const api = create({ baseURL: API_BASE_URL });
+export const api = create({ baseURL: API_BASE_URL, timeout: 10000 });
 
 api.interceptors.request.use(async (config) => {
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL ?? ''}${config.url ?? ''}`);
   const token = await getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -36,7 +39,7 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (error.response && error.response.status === 401) {
       await clearToken();
       router.replace('/(auth)/login');
     }
