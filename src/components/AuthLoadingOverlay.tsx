@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -22,18 +22,18 @@ export default function AuthLoadingOverlay({
   subMessage = 'Verifying staff credentials and securing connection',
 }: AuthLoadingOverlayProps) {
   // Animation values
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const scanLineAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const [pulseAnim] = useState(() => new Animated.Value(1));
+  const [rotateAnim] = useState(() => new Animated.Value(0));
+  const [scanLineAnim] = useState(() => new Animated.Value(0));
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [scaleAnim] = useState(() => new Animated.Value(0.9));
 
   useEffect(() => {
     if (visible) {
       // Trigger subtle haptic on start
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      } catch (e) {
+      } catch {
         // ignore if not supported
       }
 
@@ -121,19 +121,27 @@ export default function AuthLoadingOverlay({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, fadeAnim, scaleAnim, pulseAnim, rotateAnim, scanLineAnim]);
+
+  const spin = useMemo(
+    () =>
+      rotateAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+      }),
+    [rotateAnim]
+  );
+
+  const scanTranslateY = useMemo(
+    () =>
+      scanLineAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [-25, 25],
+      }),
+    [scanLineAnim]
+  );
 
   if (!visible) return null;
-
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const scanTranslateY = scanLineAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-25, 25],
-  });
 
   return (
     <Modal

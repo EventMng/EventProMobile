@@ -85,6 +85,7 @@ export default function ScannerScreen() {
         triggerFlashState('duplicate', {
           fullName: verified.participant?.fullName || 'Guest',
           timeInfo: 'Already checked in',
+          ticketType: verified.ticketType || 'General Admission',
         });
         return;
       }
@@ -92,7 +93,7 @@ export default function ScannerScreen() {
       setEventData((prev) => prev ? { ...prev, checkedInCount: prev.checkedInCount + 1 } : null);
       triggerFlashState('success', {
         fullName: verified.participant?.fullName || 'Guest',
-        ticketType: 'General Admission',
+        ticketType: verified.ticketType || 'General Admission',
       });
     } catch (err: any) {
       console.error('[Scanner Error]', err.response?.status, err.response?.data || err.message);
